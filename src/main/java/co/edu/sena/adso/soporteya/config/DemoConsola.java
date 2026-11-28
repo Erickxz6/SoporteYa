@@ -1,14 +1,21 @@
 package co.edu.sena.adso.soporteya.config;
 
 import java.time.YearMonth;
+import java.util.List;
+import java.util.function.Supplier;
 
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import co.edu.sena.adso.soporteya.dto.NuevoTicket;
 import co.edu.sena.adso.soporteya.model.Prioridad;
+import co.edu.sena.adso.soporteya.model.Rol;
 import co.edu.sena.adso.soporteya.service.NegocioException;
 import co.edu.sena.adso.soporteya.service.TicketService;
 
@@ -19,6 +26,12 @@ import co.edu.sena.adso.soporteya.service.TicketService;
 @Profile("demo")
 @Order(2)
 public class DemoConsola implements CommandLineRunner {
+
+    private static final String LAURA = "laura.gomez@soporteya.co";
+    private static final String CARLOS = "carlos.ruiz@soporteya.co";
+    private static final String DIANA = "diana.torres@soporteya.co";
+    private static final String MATEO = "mateo.diaz@soporteya.co";
+    private static final String ANA = "ana.perez@soporteya.co";
 
     private final TicketService servicio;
 
@@ -32,7 +45,7 @@ public class DemoConsola implements CommandLineRunner {
         servicio.conteoPorEstado().forEach(c -> System.out.println(c.estado() + ": " + c.cantidad()));
 
         titulo("2. Tablero: pendientes, los más urgentes primero (@EntityGraph)");
-        servicio.pendientes().forEach(t -> System.out.printf("%s · %-8s · %-9s · %s%n",
+        como(LAURA, Rol.COORDINADOR, servicio::pendientes).forEach(t -> System.out.printf("%s · %-8s · %-9s · %s%n",
                 t.codigo(), t.prioridad(), t.estado(), t.asunto()));
 
         titulo("3. Jorge crea un ticket");
@@ -43,21 +56,21 @@ public class DemoConsola implements CommandLineRunner {
         titulo("4. Reglas de negocio que deben fallar");
         intentar("Jorge repite el asunto", () -> servicio.crear(new NuevoTicket("la pantalla parpadea",
                 "Otra vez.", Prioridad.BAJA, 1L), "jorge.herrera@soporteya.co"));
-        intentar("Diana toma un ticket de Impresoras", () -> servicio.tomar(3L, "diana.torres@soporteya.co"));
-        intentar("Ana (solicitante) toma un ticket", () -> servicio.tomar(1L, "ana.perez@soporteya.co"));
+        intentar("Diana toma un ticket de Impresoras", () -> como(DIANA, Rol.TECNICO, () -> servicio.tomar(3L, DIANA)));
+        intentar("Ana (solicitante) toma un ticket", () -> como(ANA, Rol.SOLICITANTE, () -> servicio.tomar(1L, ANA)));
         intentar("Paola cierra un ticket de Ana", () -> servicio.cerrar(2L, "paola.martinez@soporteya.co"));
 
         titulo("5. Ciclo completo del ticket SY-00001");
-        servicio.tomar(1L, "carlos.ruiz@soporteya.co");
+        como(CARLOS, Rol.TECNICO, () -> servicio.tomar(1L, CARLOS));
         System.out.println("Carlos lo toma → EN_CURSO");
-        intentar("Mateo intenta tomarlo también", () -> servicio.tomar(1L, "mateo.diaz@soporteya.co"));
-        servicio.resolver(1L, "carlos.ruiz@soporteya.co", "Se cambió la fuente de poder del equipo");
+        intentar("Mateo intenta tomarlo también", () -> como(MATEO, Rol.TECNICO, () -> servicio.tomar(1L, MATEO)));
+        como(CARLOS, Rol.TECNICO, () -> servicio.resolver(1L, CARLOS, "Se cambió la fuente de poder del equipo"));
         System.out.println("Carlos lo resuelve → RESUELTO");
         servicio.cerrar(1L, "ana.perez@soporteya.co");
         System.out.println("Ana confirma → CERRADO");
 
         titulo("6. Indicadores del mes por técnico");
-        servicio.indicadores(YearMonth.now()).forEach(i -> System.out.printf("%s: %d resueltos, %d%% a tiempo%n",
+        como(LAURA, Rol.COORDINADOR, () -> servicio.indicadores(YearMonth.now())).forEach(i -> System.out.printf("%s: %d resueltos, %d%% a tiempo%n",
                 i.tecnico(), i.resueltos(), i.cumplimiento()));
 
         titulo("7. Mis tickets de Ana (página 1)");
@@ -72,6 +85,19 @@ public class DemoConsola implements CommandLineRunner {
             System.out.println("✗ " + caso + ": ¡no falló!");
         } catch (NegocioException e) {
             System.out.println("✓ " + caso + " → " + e.getMessage());
+        } catch (AccessDeniedException e) {
+            System.out.println("✓ " + caso + " → acceso denegado por rol");
+        }
+    }
+
+    // Fuera de una petición web no hay sesión ni token: se simula el usuario para que @PreAuthorize funcione
+    private <T> T como(String email, Rol rol, Supplier<T> accion) {
+        SecurityContextHolder.getContext().setAuthentication(UsernamePasswordAuthenticationToken.authenticated(
+                email, null, List.of(new SimpleGrantedAuthority("ROLE_" + rol.name()))));
+        try {
+            return accion.get();
+        } finally {
+            SecurityContextHolder.clearContext();
         }
     }
 
