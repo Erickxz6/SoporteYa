@@ -1,5 +1,7 @@
 package co.edu.sena.adso.soporteya.controller;
 
+import java.security.Principal;
+
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -8,9 +10,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import jakarta.servlet.http.HttpSession;
 
-import co.edu.sena.adso.soporteya.config.SesionDemo;
 import co.edu.sena.adso.soporteya.dto.TicketResumenDTO;
 import co.edu.sena.adso.soporteya.service.NegocioException;
 import co.edu.sena.adso.soporteya.service.TicketService;
@@ -20,11 +20,9 @@ import co.edu.sena.adso.soporteya.service.TicketService;
 public class TableroController {
 
     private final TicketService tickets;
-    private final SesionDemo demo;
 
-    public TableroController(TicketService tickets, SesionDemo demo) {
+    public TableroController(TicketService tickets) {
         this.tickets = tickets;
-        this.demo = demo;
     }
 
     @GetMapping("/tablero")
@@ -34,9 +32,9 @@ public class TableroController {
     }
 
     @PostMapping("/tablero/{id}/tomar")
-    public String tomar(@PathVariable("id") Long id, HttpSession sesion, RedirectAttributes flash) {
+    public String tomar(@PathVariable("id") Long id, Principal yo, RedirectAttributes flash) {
         try {
-            TicketResumenDTO t = tickets.tomar(id, demo.email(sesion));
+            TicketResumenDTO t = tickets.tomar(id, yo.getName());
             flash.addFlashAttribute("ok", "Usted tomó el ticket " + t.codigo());
         } catch (NegocioException e) {
             flash.addFlashAttribute("error", e.getMessage());

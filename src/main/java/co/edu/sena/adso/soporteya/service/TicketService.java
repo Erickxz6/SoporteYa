@@ -7,6 +7,8 @@ import java.util.Set;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -50,13 +52,20 @@ public class TicketService {
                 .map(TicketResumenDTO::from);
     }
 
+    @PreAuthorize("hasAnyRole('TECNICO', 'COORDINADOR')")
     public List<TicketResumenDTO> pendientes() {
         return tickets.findByEstadoInOrderByFechaLimiteAsc(EstadoTicket.pendientes()).stream()
                 .map(TicketResumenDTO::from)
                 .toList();
     }
 
+    // Unidad 4 · cuántos tickets pendientes tiene el usuario (para el contador del menú)
+    public long contarMisPendientes(String email) {
+        return tickets.countBySolicitanteEmailAndEstadoIn(email, EstadoTicket.pendientes());
+    }
+
     // Unidad 2 · las tres columnas del tablero
+    @PreAuthorize("hasAnyRole('TECNICO', 'COORDINADOR')")
     public TableroDTO tablero() {
         List<TicketResumenDTO> todos = tickets.findByEstadoInOrderByFechaLimiteAsc(
                         Set.of(EstadoTicket.ABIERTO, EstadoTicket.EN_CURSO, EstadoTicket.RESUELTO)).stream()
@@ -68,10 +77,19 @@ public class TicketService {
                 todos.stream().filter(t -> t.estado() == EstadoTicket.RESUELTO).toList());
     }
 
-    // Unidad 2 · la página de un ticket con sus comentarios
-    public TicketDetalleDTO detalle(Long id) {
+    // Unidad 3 · control de acceso HORIZONTAL: un solicitante solo ve SUS tickets,
+    // y nunca las notas internas. Técnicos y coordinación ven todo.
+    public TicketDetalleDTO detalle(Long id, String email) {
         Ticket ticket = buscar(id);
-        List<ComentarioDTO> comentarios = ticket.getComentarios().stream().map(ComentarioDTO::from).toList();
+        Usuario yo = usuario(email);
+        boolean esPersonal = yo.getRol() != Rol.SOLICITANTE;
+        if (!esPersonal && !ticket.getSolicitante().getId().equals(yo.getId())) {
+            throw new AccessDeniedException("No puede ver tickets de otras personas");
+        }
+        List<ComentarioDTO> comentarios = ticket.getComentarios().stream()
+                .filter(c -> esPersonal || !c.isInterno())
+                .map(ComentarioDTO::from)
+                .toList();
         return TicketDetalleDTO.from(ticket, comentarios);
     }
 
@@ -79,11 +97,13 @@ public class TicketService {
         return tickets.conteoPorEstado();
     }
 
+    @PreAuthorize("hasRole('COORDINADOR')")
     public List<IndicadorTecnicoDTO> indicadores(YearMonth mes) {
         LocalDateTime desde = mes.atDay(1).atStartOfDay();
         return tickets.indicadoresEntre(desde, desde.plusMonths(1));
     }
 
+    @PreAuthorize("hasRole('COORDINADOR')")
     public List<TicketResumenDTO> vencidos() {
         return tickets.vencidos(EstadoTicket.pendientes(), LocalDateTime.now()).stream()
                 .map(TicketResumenDTO::from)
@@ -109,6 +129,7 @@ public class TicketService {
 
     // Un técnico toma un ticket ABIERTO de su especialidad
     @Transactional
+    @PreAuthorize("hasRole('TECNICO')")
     public TicketResumenDTO tomar(Long ticketId, String emailTecnico) {
         Ticket ticket = buscar(ticketId);
         Usuario tecnico = usuario(emailTecnico);
@@ -127,6 +148,7 @@ public class TicketService {
     }
 
     @Transactional
+    @PreAuthorize("hasRole('TECNICO')")
     public TicketResumenDTO resolver(Long ticketId, String emailTecnico, String solucion) {
         Ticket ticket = buscar(ticketId);
         Usuario tecnico = usuario(emailTecnico);
@@ -171,6 +193,9 @@ public class TicketService {
     public void comentar(Long ticketId, String email, String texto, boolean interno) {
         Ticket ticket = buscar(ticketId);
         Usuario autor = usuario(email);
+        if (autor.getRol() == Rol.SOLICITANTE && !ticket.getSolicitante().getId().equals(autor.getId())) {
+            throw new AccessDeniedException("No puede comentar tickets de otras personas");
+        }
         if (ticket.getEstado().esFinal()) {
             throw new NegocioException("texto", "El ticket ya está " + ticket.getEstado().getEtiqueta().toLowerCase());
         }

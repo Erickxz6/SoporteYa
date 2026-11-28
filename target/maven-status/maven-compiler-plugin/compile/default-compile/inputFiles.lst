@@ -1,12 +1,17 @@
 /home/erickxz-6/SoporteYa/src/main/java/co/edu/sena/adso/soporteya/SoporteyaApplication.java
 /home/erickxz-6/SoporteYa/src/main/java/co/edu/sena/adso/soporteya/config/DatosIniciales.java
 /home/erickxz-6/SoporteYa/src/main/java/co/edu/sena/adso/soporteya/config/DemoConsola.java
+/home/erickxz-6/SoporteYa/src/main/java/co/edu/sena/adso/soporteya/config/SeguridadConfig.java
 /home/erickxz-6/SoporteYa/src/main/java/co/edu/sena/adso/soporteya/config/SesionDemo.java
+/home/erickxz-6/SoporteYa/src/main/java/co/edu/sena/adso/soporteya/controller/CategoriaAdminController.java
+/home/erickxz-6/SoporteYa/src/main/java/co/edu/sena/adso/soporteya/controller/CuentaController.java
 /home/erickxz-6/SoporteYa/src/main/java/co/edu/sena/adso/soporteya/controller/DemoController.java
 /home/erickxz-6/SoporteYa/src/main/java/co/edu/sena/adso/soporteya/controller/Formularios.java
+/home/erickxz-6/SoporteYa/src/main/java/co/edu/sena/adso/soporteya/controller/IndicadoresController.java
 /home/erickxz-6/SoporteYa/src/main/java/co/edu/sena/adso/soporteya/controller/InicioController.java
 /home/erickxz-6/SoporteYa/src/main/java/co/edu/sena/adso/soporteya/controller/TableroController.java
 /home/erickxz-6/SoporteYa/src/main/java/co/edu/sena/adso/soporteya/controller/TicketController.java
+/home/erickxz-6/SoporteYa/src/main/java/co/edu/sena/adso/soporteya/controller/UsuarioAdminController.java
 /home/erickxz-6/SoporteYa/src/main/java/co/edu/sena/adso/soporteya/controller/VistaComun.java
 /home/erickxz-6/SoporteYa/src/main/java/co/edu/sena/adso/soporteya/controller/package-info.java
 /home/erickxz-6/SoporteYa/src/main/java/co/edu/sena/adso/soporteya/dto/CategoriaDTO.java
@@ -16,6 +21,7 @@
 /home/erickxz-6/SoporteYa/src/main/java/co/edu/sena/adso/soporteya/dto/IndicadorTecnicoDTO.java
 /home/erickxz-6/SoporteYa/src/main/java/co/edu/sena/adso/soporteya/dto/NuevoTicket.java
 /home/erickxz-6/SoporteYa/src/main/java/co/edu/sena/adso/soporteya/dto/OpcionDTO.java
+/home/erickxz-6/SoporteYa/src/main/java/co/edu/sena/adso/soporteya/dto/RegistroForm.java
 /home/erickxz-6/SoporteYa/src/main/java/co/edu/sena/adso/soporteya/dto/TableroDTO.java
 /home/erickxz-6/SoporteYa/src/main/java/co/edu/sena/adso/soporteya/dto/TextoForm.java
 /home/erickxz-6/SoporteYa/src/main/java/co/edu/sena/adso/soporteya/dto/TicketDetalleDTO.java
@@ -37,6 +43,8 @@
 /home/erickxz-6/SoporteYa/src/main/java/co/edu/sena/adso/soporteya/repository/TicketRepository.java
 /home/erickxz-6/SoporteYa/src/main/java/co/edu/sena/adso/soporteya/repository/UsuarioRepository.java
 /home/erickxz-6/SoporteYa/src/main/java/co/edu/sena/adso/soporteya/service/CategoriaService.java
+/home/erickxz-6/SoporteYa/src/main/java/co/edu/sena/adso/soporteya/service/GoogleUsuarioService.java
 /home/erickxz-6/SoporteYa/src/main/java/co/edu/sena/adso/soporteya/service/NegocioException.java
 /home/erickxz-6/SoporteYa/src/main/java/co/edu/sena/adso/soporteya/service/TicketService.java
+/home/erickxz-6/SoporteYa/src/main/java/co/edu/sena/adso/soporteya/service/UsuarioDetallesService.java
 /home/erickxz-6/SoporteYa/src/main/java/co/edu/sena/adso/soporteya/service/UsuarioService.java

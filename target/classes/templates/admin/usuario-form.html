@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragmentos :: head('Usuario')}">
-  <title>Usuario | SoporteYa</title>
+  <title>Usuario</title>
 </head>
 <body>
   <nav th:replace="~{fragmentos :: menu('usuarios')}"></nav>
@@ -41,6 +41,12 @@
           </select>
           <div class="invalid-feedback" th:errors="*{areaId}">Error</div>
         </div>
+      </div>
+
+      <div class="mb-3">
+        <label for="password" class="form-label">Contraseña <span class="text-muted small" th:text="${usuario.esNuevo()} ? '(inicial)' : '(déjela vacía para no cambiarla)'"></span></label>
+        <input type="password" th:field="*{password}" class="form-control" th:errorclass="is-invalid" autocomplete="new-password">
+        <div class="invalid-feedback" th:errors="*{password}">Error</div>
       </div>
 
       <!-- Muchos a muchos: una casilla por categoría. th:field marca las que ya tiene. -->
