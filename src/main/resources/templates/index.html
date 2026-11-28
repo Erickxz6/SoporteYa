@@ -10,7 +10,7 @@
       <p class="text-uppercase small mb-2">Mesa de ayuda de TI</p>
       <h1 class="display-5 fw-bold" sec:authorize="isAuthenticated()">Hola, <span th:text="${yo.nombreCompleto}">Ana</span></h1>
       <h1 class="display-5 fw-bold" sec:authorize="isAnonymous()">SoporteYa</h1>
-      <p class="lead mb-4">Reporte la falla, siga su ticket y sepa quién lo está atendiendo.</p>
+      <p class="lead mb-4">Reporte la falla, siga su ticket y sepa quién lo está atendiendo. Ahora también desde su celular.</p>
       <a class="btn btn-light btn-lg" th:href="@{/tickets/nuevo}">Reportar una falla</a>
       <a class="btn btn-outline-light btn-lg" sec:authorize="hasAnyRole('TECNICO', 'COORDINADOR')" th:href="@{/tablero}">Ir al tablero</a>
     </div>
